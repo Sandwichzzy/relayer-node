@@ -1,5 +1,13 @@
 package relayer
 
+//bridge_initiate (跨链发起表)
+//作用: 记录用户在源链发起的跨链转账请求
+//用户在链A发起转账 → 监听到事件 → 存入 bridge_initiate
+//- 关键字段: SourceChainId, DestChainId, Amount, Status
+//-
+//
+//: 0=待处理, 1=已处理
+
 import (
 	"math/big"
 

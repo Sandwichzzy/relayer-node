@@ -11,6 +11,12 @@ import (
 	"github.com/google/uuid"
 )
 
+// event_block (区块监听表)
+//
+// 作用: 记录每条链的最后扫描区块高度
+// 防止重复扫描,支持断点续传
+// - 查询: GetLastBlockNumber
+// - 更新: SaveOrUpdateLastBlockNumber
 type EventBlockListener struct {
 	GUID        uuid.UUID `json:"guid" gorm:"primaryKey;DEFAULT replace(uuid_generate_v4()::text,'-','');serializer:uuid"`
 	ChainId     string    `json:"chain_id"`

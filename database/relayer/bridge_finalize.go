@@ -13,6 +13,11 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 )
 
+//bridge_finalize (跨链完成表)
+//
+//作用: 记录在目标链完成的跨链转账
+//目标链执行转账 → 监听到 Finalize 事件 → 存入 bridge_finalize
+
 type BridgeFinalize struct {
 	GUID               uuid.UUID      `json:"guid" gorm:"primaryKey;DEFAULT replace(uuid_generate_v4()::text,'-','');serializer:uuid"`
 	TxHash             common.Hash    `json:"tx_hash" gorm:"serializer:bytes"`

@@ -12,6 +12,12 @@ import (
 	"github.com/google/uuid"
 )
 
+//bridge_msg_hash (消息哈希表)
+//
+//作用: 追踪跨链消息的哈希值,用于消息匹配
+//用于验证消息完整性和防重放攻击
+//- 查询方法: QueryBridgeMsgHashs
+
 type BridgeMsgHash struct {
 	GUID               uuid.UUID      `json:"guid" gorm:"primaryKey;DEFAULT replace(uuid_generate_v4()::text,'-','');serializer:uuid"`
 	BlockNumber        *big.Int       `json:"dest_block_number" gorm:"serializer:u256"`

@@ -11,6 +11,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+// lp_withdraw (LP提款表)
+//
+// 作用: 记录LP提取流动性和奖励
+// - 包含本金(Amount)和奖励(RewardAmount)
 type LpWithdraw struct {
 	GUID         uuid.UUID      `json:"guid" gorm:"primaryKey;DEFAULT replace(uuid_generate_v4()::text,'-','');serializer:uuid"`
 	BlockNumber  *big.Int       `json:"dest_block_number" gorm:"serializer:u256"`

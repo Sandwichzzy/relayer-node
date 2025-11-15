@@ -1,6 +1,7 @@
 package relayer
 
 import (
+	"github.com/Sandwichzzy/relayer-node/config"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -9,9 +10,13 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-
-	"github.com/Sandwichzzy/relayer-node/config"
 )
+
+// token_config (代币配置表)
+//
+//作用: 存储支持的代币信息
+//- 字段: TokenAddress, TokenDecimal, TokenName, ChainId
+//- 从配置文件构建: BuildTokenConfig
 
 type TokenConfig struct {
 	GUID         uuid.UUID      `json:"guid" gorm:"primaryKey;DEFAULT replace(uuid_generate_v4()::text,'-','');serializer:uuid"`

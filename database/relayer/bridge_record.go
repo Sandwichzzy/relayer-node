@@ -12,6 +12,17 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 )
 
+//bridge_record  (核心汇总表)
+//
+//作用: 汇总完整的跨链交易记录,供用户查询
+//MsgSent + Finalize → 合并成完整记录
+//- 包含源链和目标链的完整信息
+//- 提供分页查询: GetBridgeRecordList
+//- Status: 0=进行中, 1=已完成
+//
+//更新逻辑: UpdateBridgeRecordsFromRelayerMsg
+//- 当 Finalize 事件发生时,更新对应的 bridge_record
+
 type BridgeRecords struct {
 	GUID               uuid.UUID      `json:"guid" gorm:"primaryKey;DEFAULT replace(uuid_generate_v4()::text,'-','');serializer:uuid"`
 	SourceChainId      *big.Int       `json:"source_chain_id" gorm:"serializer:u256"`

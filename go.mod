@@ -6,6 +6,7 @@ require (
 	github.com/ethereum/go-ethereum v1.16.7
 	github.com/google/uuid v1.3.0
 	github.com/jackc/pgtype v1.14.4
+	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli/v2 v2.27.5
 	golang.org/x/sync v0.12.0

@@ -11,6 +11,13 @@ import (
 	"github.com/google/uuid"
 )
 
+//bridge_msg_sent (消息发送表)
+//
+//作用: 记录 relayer 发送到目标链的跨链消息
+//Relayer 构建消息 → 发送到链B → 记录 msg_hash 和 nonce
+//- 关键字段: MsgHash, MsgNonce, Fee, Relation
+//- Relation: false=未关联, true=已与目标链交易关联
+
 type BridgeMsgSent struct {
 	GUID               uuid.UUID      `json:"guid" gorm:"primaryKey;DEFAULT replace(uuid_generate_v4()::text,'-','');serializer:uuid"`
 	TxHash             common.Hash    `json:"tx_hash" gorm:"serializer:bytes"`

@@ -10,6 +10,10 @@ import (
 	"github.com/google/uuid"
 )
 
+// claim_reward (奖励领取表)
+//
+// 作用: 记录LP领取累积奖励的操作
+// - 按 pool ID 范围领取: StartPoolId → EndPoolId
 type ClaimReward struct {
 	GUID         uuid.UUID      `json:"guid" gorm:"primaryKey;DEFAULT replace(uuid_generate_v4()::text,'-','');serializer:uuid"`
 	BlockNumber  *big.Int       `json:"dest_block_number" gorm:"serializer:u256"`

@@ -12,6 +12,12 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 )
 
+//staking_record (质押记录表)
+//
+//作用: 记录LP提供者的质押操作
+//- 字段: UserAddress, Amount, Reward, StartPoolId, EndPoolId
+//- 用于计算LP的收益和积分
+
 type StakingRecord struct {
 	GUID               uuid.UUID      `json:"guid" gorm:"primaryKey;DEFAULT replace(uuid_generate_v4()::text,'-','');serializer:uuid"`
 	TxHash             common.Hash    `json:"tx_hash" gorm:"serializer:bytes"`
