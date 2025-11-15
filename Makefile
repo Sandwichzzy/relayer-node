@@ -58,8 +58,8 @@ binding-msg:
 .PHONY: \
 	relayer-node \
 	bindings \
-	bindings-pool \
-	bindings-msg \
+	binding-pool \
+	binding-msg \
 	clean \
 	test \
 	lint
