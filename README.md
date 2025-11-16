@@ -71,3 +71,38 @@ pool_manager.go 记录 InitiateETH → 存入 bridge_initiate
 4. Relayer 提交到目标链
 5. pool_manager.go 记录 FinalizeETH → 存入 bridge_finalize
 6. message_manager.go 记录 MessageClaimed → 存入 bridge_msg_hash
+
+
+跨链桥接中的哈希匹配机制
+MsgHash (消息哈希) - 相同的 ✅
+
+// 源链事件
+MsgHash: bridgeMsgSent.MsgHash      // 例如: 0x789xyz...
+
+// 目标链事件
+MsgHash: bridgeRelayMsg.MsgHash     // 例如: 0x789xyz... (相同!)
+
+🎯 MsgHash 的生成原理
+
+MsgHash 是根据跨链消息的业务内容计算出来的哈希值，通常包含：
+
+// 智能合约中的示例（伪代码）
+MsgHash = keccak256(abi.encodePacked(
+sourceChainId,      // 源链ID
+destChainId,        // 目标链ID
+sourceTokenAddress, // 源代币地址
+destTokenAddress,   // 目标代币地址
+fromAddress,        // 发送方
+toAddress,          // 接收方
+amount,             // 金额
+nonce,              // 唯一nonce
+fee                 // 手续费
+));
+
+
+工作流程：
+1. 用户在源链发起跨链交易 → 生成 MsgHash（基于消息内容）
+2. Worker 在源链监听到 BridgeMsgSent 事件，保存 MsgHash 和 SourceTxHash
+3. 中继器将消息传递到目标链，目标链验证并生成相同的 MsgHash
+4. Worker 在目标链监听到 BridgeMsgHash 事件，通过相同的 MsgHash 找到原始记录
+5. 更新记录，添加 DestTxHash
