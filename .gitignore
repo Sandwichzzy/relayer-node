@@ -26,15 +26,19 @@ go.work.sum
 
 # env file
 .env
+.env.local
 
 # Editor/IDE
 .idea/
 .vscode/
 relayer-node.exe
 
+# 日志文件
+*.log
 
 *.local.yaml
 *-local.yaml
+relayer-node.yaml
 *.key
 *.pem
 /etc/relayer/
