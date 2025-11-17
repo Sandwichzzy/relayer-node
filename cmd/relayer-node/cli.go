@@ -7,6 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/urfave/cli/v2"
 
+	relayer_node "github.com/Sandwichzzy/relayer-node"
 	"github.com/Sandwichzzy/relayer-node/common/cliapp"
 	"github.com/Sandwichzzy/relayer-node/common/opio"
 	"github.com/Sandwichzzy/relayer-node/config"
@@ -32,7 +33,13 @@ var (
 )
 
 func runIndexer(ctx *cli.Context, shutdown context.CancelCauseFunc) (cliapp.Lifecycle, error) {
-	return nil, nil
+	log.Info("running indexer...")
+	cfg, err := config.New(ctx.String(ConfigFlag.Name))
+	if err != nil {
+		log.Error("failed to load config", "err", err)
+		return nil, err
+	}
+	return relayer_node.NewRelayerNode(ctx.Context, cfg, shutdown)
 }
 
 func runApi(ctx *cli.Context, _ context.CancelCauseFunc) (cliapp.Lifecycle, error) {

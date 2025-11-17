@@ -36,14 +36,16 @@ type TokenCommon struct {
 	Name    string `json:"name"`
 }
 
+// RPC 链配置
+// 每个 RPC 配置对应一条区块链，支持多链监控
 type RPC struct {
-	RpcUrl           string   `yaml:"rpc_url"`
-	ChainId          uint64   `yaml:"chain_id"`
-	StartBlock       uint64   `yaml:"start_block"`
-	HeaderBufferSize uint64   `yaml:"header_buffer_size"`
-	EventUnpackBlock uint64   `yaml:"event_unpack_block"`
-	Contracts        Contract `yaml:"contracts"`
-	Tokens           Token    `yaml:"tokens"`
+	RpcUrl           string   `yaml:"rpc_url"`            // 区块链 RPC 节点地址
+	ChainId          uint64   `yaml:"chain_id"`           // 链 ID（1=以太坊主网, 56=BSC, 等）
+	StartBlock       uint64   `yaml:"start_block"`        // Synchronizer 起始区块：从哪个区块开始同步区块头和原始事件日志
+	HeaderBufferSize uint64   `yaml:"header_buffer_size"` // 每批处理的区块头数量
+	EventUnpackBlock uint64   `yaml:"event_unpack_block"` // Event Processor 起始区块：从哪个区块开始解析（unpack）事件为业务数据
+	Contracts        Contract `yaml:"contracts"`          // 需要监听的合约地址
+	Tokens           Token    `yaml:"tokens"`             // 代币配置
 }
 
 type Config struct {
@@ -54,12 +56,12 @@ type Config struct {
 	Metrics                   Server   `yaml:"metrics"`
 	MasterDb                  Database `yaml:"master_db"`
 	SlaveDb                   Database `yaml:"slave_db"`
-	PrivateKey                string   `yaml:"private_key"`
 	NumConfirmations          uint64   `yaml:"num_confirmations"`
 	SafeAbortNonceTooLowCount uint64   `yaml:"safe_abort_nonce_too_low_count"`
 	CallerAddress             string   `yaml:"caller_address"`
 	SlaveDbEnable             bool     `yaml:"slave_db_enable"`
 	EnableApiCache            bool     `yaml:"enable_api_cache"`
+	//PrivateKey              string   `yaml:"private_key"`
 }
 
 func New(path string) (*Config, error) {

@@ -1,3 +1,14 @@
+// Package event 实现事件处理器（Event Processor）
+// 这是跨链桥系统的第二阶段处理：解析和转换事件为业务数据
+//
+// 工作流程：
+// 1. Synchronizer 同步原始事件日志到数据库（ContractEvents 表）
+// 2. Event Processor 从数据库读取事件并解析为业务数据
+// 3. 将业务数据存储到对应的业务表（BridgeInitiate、BridgeFinalize 等）
+//
+// 与 Synchronizer 的区别：
+// - Synchronizer: 同步区块链 → 数据库（原始数据）
+// - Event Processor: 数据库 → 数据库（业务数据）
 package event
 
 import (
@@ -16,15 +27,15 @@ import (
 	"github.com/Sandwichzzy/relayer-node/synchronizer/retry"
 )
 
-// 这个模块是整个跨链桥系统的事件采集层，负责将链上事件转换为数据库记录。
+// ProcessorConfig 事件处理器配置
 type ProcessorConfig struct {
-	LoopInterval       time.Duration
-	StartHeight        *big.Int
-	MsgManagerAddress  string
-	PoolManagerAddress string
-	ChainId            string
-	EventStartBlock    uint64
-	Epoch              uint64
+	LoopInterval       time.Duration // 处理循环间隔
+	StartHeight        *big.Int      // 保留字段（目前未使用）
+	MsgManagerAddress  string        // MessageManager 合约地址
+	PoolManagerAddress string        // PoolManager 合约地址
+	ChainId            string        // 链 ID
+	EventStartBlock    uint64        // 事件解析起始区块（对应配置文件中的 event_unpack_block）
+	Epoch              uint64        // 每次处理的区块数量上限
 }
 
 type Processor struct {
@@ -96,18 +107,36 @@ func (ep *Processor) Close() error {
 	return ep.tasks.Wait()
 }
 
+// processEvent 处理事件：从数据库读取原始事件并解析为业务数据
+//
+// 处理流程：
+// 1. 确定处理区块范围（eventStartBlock → eventEndBlock）
+// 2. 从数据库读取该范围内的原始事件
+// 3. 解析事件为业务数据（BridgeInitiate、MessageSent 等）
+// 4. 存储业务数据到对应的数据库表
+//
+// 关键：Event Processor 依赖 Synchronizer 先同步数据到数据库
 func (ep *Processor) processEvent() error {
 	eventEndBlock := big.NewInt(0)
+
+	// 初始化起始区块：使用配置的 EventStartBlock（event_unpack_block）
+	// 这是第一次运行时的起始点，只在数据库没有记录时使用
 	eventStartBlock := big.NewInt(int64(ep.eventBlocksConfig.EventStartBlock))
+
+	// 从数据库查询上次处理到的区块
+	// 支持断点续传：如果有记录，从上次处理的下一个区块开始
 	eventBlock, err := ep.db.EventBlockListener.GetLastBlockNumber(ep.eventBlocksConfig.ChainId)
 	if err != nil {
 		log.Error("get latest block number fail", "err", err)
 		return err
 	}
 	if eventBlock != nil {
+		// 从上次处理的区块的下一个区块开始
 		eventStartBlock = new(big.Int).Add(eventBlock.BlockNumber, big.NewInt(1))
 	}
 
+	// 获取 Synchronizer 已同步到的最新区块
+	// Event Processor 只能处理 Synchronizer 已同步的区块范围
 	blockHeader, err := ep.db.Blocks.ChainLatestBlockHeader(ep.eventBlocksConfig.ChainId)
 	if err != nil {
 		log.Error("get latest block header fail", "err", err)
@@ -117,9 +146,11 @@ func (ep *Processor) processEvent() error {
 	if blockHeader != nil {
 		eventEndBlock = blockHeader.Number
 	} else {
+		// 如果 Synchronizer 还没有同步任何区块，则等待
 		return nil
 	}
 
+	// 如果起始区块大于结束区块，说明没有新数据需要处理
 	if eventStartBlock.Cmp(eventEndBlock) > 0 {
 		return nil
 	}
@@ -127,11 +158,16 @@ func (ep *Processor) processEvent() error {
 	log.Info("process event latest block number", "startBlock", eventStartBlock, "endBlock", eventEndBlock, "chainId", ep.eventBlocksConfig.ChainId)
 	ep.eventRegistry.RecordEventBlockHeight(ep.eventBlocksConfig.ChainId, eventEndBlock)
 
+	// 处理 PoolManager 合约事件（资金池相关）
+	// 解析出：BridgeInitiate、BridgeFinalize、LPWithdraw、ClaimReward、StakingRecord 等
 	bridgeInitiateList, bridgeFinalizeList, lpWithdrawList, claimRewardList, stakingRecordList, err := ep.poolManager.ProcessPoolManagerEvent(ep.db, eventStartBlock, eventEndBlock)
 	if err != nil {
 		log.Error("process pool manager event", "err", err)
 		return err
 	}
+
+	// 处理 MessageManager 合约事件（消息管理相关）
+	// 解析出：MessageSent、MessageHash 等
 	bridgeMsgSentList, bridgeMsgHashList, err := ep.msgManager.ProcessMessageManager(ep.db, eventStartBlock, eventEndBlock)
 	if err != nil {
 		log.Error("process message manager fail", "err", err)

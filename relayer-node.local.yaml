@@ -1,5 +1,5 @@
 slave_db_enable: false
-private_key: "a3c456042022db6b15af6697ad215032881b1842e763e89ec5d4bebc16a443aa"
+private_key: ""
 num_confirmations: 3
 safe_abort_nonce_too_low_count: 3
 caller_address: "0x55225359b717dA1EA4270F78ddA384b0A9f53E28"

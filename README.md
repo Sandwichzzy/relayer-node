@@ -130,3 +130,49 @@ Worker/Processor
 WebSocket Hub
 ↓
 Broadcast to all clients
+
+
+
+
+【源链】用户调用 bridgeInitiate(100 USDT)
+↓
+Synchronizer 同步事件
+↓
+Event Processor 解析事件
+↓
+┌──────────────────────────┬──────────────────────────┐
+│                          │                          │
+│   Worker 模块任务1        │   Relayer 模块任务1       │
+│   onProcessMessageSend    │   onBeforeSendFinalizedTx│
+│                          │                          │
+│   1. 读取 BridgeMsgSent   │   1. 读取 BridgeInitiate │
+│   2. 验证代币配置         │   2. 构造 bridgeFinalize  │
+│   3. 创建 BridgeRecord    │      交易                │
+│      - Status = 0 (待完成)│   3. 通过 DriverEngine   │
+│      - SourceTxHash = xxx │      发送交易到目标链    │
+│      - DestTxHash = 空    │   4. 更新 BridgeInitiate │
+│                          │      - Status = 1        │
+└──────────────────────────┴──────────────────────────┘
+↓                          ↓
+【目标链】bridgeFinalize 交易上链
+↓
+Synchronizer 同步 BridgeFinalize 事件
+↓
+Event Processor 解析事件
+↓
+┌──────────────────────────┬──────────────────────────┐
+│                          │                          │
+│   Worker 模块任务2        │   Relayer 模块任务2       │
+│   onProcessRelayerMessage │   onAfterSendFinalizedTx │
+│                          │                          │
+│   1. 读取 BridgeMsgHash   │   1. 读取 BridgeFinalize │
+│   2. 通过 MsgHash 找到    │   2. 通过消息链条找到    │
+│      对应的 BridgeRecord  │      BridgeInitiate      │
+│   3. 更新 BridgeRecord    │   3. 更新 BridgeInitiate │
+│      - Status = 1 (完成)  │      - Status = 2 (确认) │
+│      - DestTxHash = yyy   │   4. 更新 BridgeFinalize │
+│   4. WebSocket 广播通知   │      - Status = 1        │
+│                          │                          │
+└──────────────────────────┴──────────────────────────┘
+↓
+✅ 跨链完成

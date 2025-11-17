@@ -1,0 +1,60 @@
+slave_db_enable: false
+private_key: "0x"
+num_confirmations: 10
+safe_abort_nonce_too_low_count: 3
+caller_address: "0x"
+enable_api_cache: false
+
+server:
+  host: 0.0.0.0
+  port: 8080
+
+websocket_server:
+  host: 0.0.0.0
+  port: 8082
+
+metrics:
+  host: 0.0.0.0
+  port: 8081
+
+rpcs:
+  - rpc_url: ''
+    chain_id: 11155420
+    start_block: 8834368
+    header_buffer_size: 20
+    event_unpack_block: 8834368
+    contracts:
+      pool_manager_address: "0x"
+      message_manager_address: "0x"
+
+  - rpc_url: ''
+    chain_id: 11155420
+    start_block: 8834368
+    header_buffer_size: 20
+    event_unpack_block: 8834368
+    contracts:
+      pool_manager_address: "0x"
+      message_manager_address: "0x"
+
+  - rpc_url: ''
+    chain_id: 11155420
+    start_block: 8834368
+    header_buffer_size: 20
+    event_unpack_block: 8834368
+    contracts:
+      pool_manager_address: "0x"
+      message_manager_address: "0x"
+
+master_db:
+  db_host: ""
+  db_port: 5432
+  db_user: ""
+  db_password: ""
+  db_name: ""
+
+slave_db:
+  db_host: "127.0.0.1"
+  db_port: 5432
+  db_user: ""
+  db_password: ""
+  db_name: ""

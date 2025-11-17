@@ -1,3 +1,11 @@
+// Package synchronizer 实现区块链数据同步器
+// 负责从区块链上同步区块头和合约事件，并存储到数据库中
+//
+// 核心功能：
+// 1. 定期获取新区块头
+// 2. 过滤指定合约的事件日志
+// 3. 将区块头和事件数据持久化到数据库
+// 4. 支持断点续传和重试机制
 package synchronizer
 
 import (
@@ -22,14 +30,14 @@ import (
 	"github.com/Sandwichzzy/relayer-node/synchronizer/retry"
 )
 
-// 负责从区块链上同步区块头和合约事件，并存储到数据库中
+// Config 同步器配置
 type Config struct {
-	LoopIntervalMsec  uint
-	HeaderBufferSize  uint
-	Contracts         []common.Address
-	StartHeight       *big.Int
-	ConfirmationDepth *big.Int
-	ChainId           uint
+	LoopIntervalMsec  uint             // 同步循环间隔（毫秒）
+	HeaderBufferSize  uint             // 每批处理的区块头数量
+	Contracts         []common.Address // 需要监听的合约地址列表（如 poolManager、messageManager）
+	StartHeight       *big.Int         // 同步起始区块高度
+	ConfirmationDepth *big.Int         // 确认深度（等待多少个区块后才认为交易最终确认）
+	ChainId           uint             // 链 ID（1=以太坊主网, 56=BSC, 等）
 }
 
 type Synchronizer struct {
@@ -141,14 +149,28 @@ func (syncer *Synchronizer) processBatch(headers []types.Header) error {
 	}
 	chainIdInt, _ := strconv.Atoi(syncer.chainId)
 
+	// Contracts 配置的关键作用：指定需要监听的智能合约地址
+	// 在跨链桥系统中，通常包含：
+	//   Contracts[0] = poolManager 合约地址（管理资金池）
+	//   Contracts[1] = messageManager 合约地址（管理跨链消息）
 	log.Info("filter logs event",
 		"fromBlock", firstHeader.Number,
 		"toBlock", lastHeader.Number,
 		"poolManager", syncer.config.Contracts[0].String(),
 		"messageManager", syncer.config.Contracts[1].String(),
 	)
-	//过滤合约日志事件
-	filterQuery := ethereum.FilterQuery{FromBlock: firstHeader.Number, ToBlock: lastHeader.Number, Addresses: syncer.config.Contracts}
+
+	// 使用 Contracts 过滤区块链日志事件
+	// FilterQuery 会只返回这些合约地址产生的事件，过滤掉其他无关合约的事件
+	// 这样可以：
+	//   1. 减少数据量，只获取跨链桥相关的事件
+	//   2. 提高同步效率，避免处理无关数据
+	//   3. 专注于监听资金转移、消息传递等关键事件
+	filterQuery := ethereum.FilterQuery{
+		FromBlock: firstHeader.Number,
+		ToBlock:   lastHeader.Number,
+		Addresses: syncer.config.Contracts, // 关键：只监听配置中指定的合约地址
+	}
 	logs, err := syncer.ethClient.FilterLogs(filterQuery, uint(chainIdInt))
 	if err != nil {
 		log.Error("processBatch", "chain ", syncer.chainId, "failed to extract logs err", err)

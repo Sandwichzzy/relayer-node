@@ -31,3 +31,10 @@ go.work.sum
 .idea/
 .vscode/
 relayer-node.exe
+
+
+*.local.yaml
+*-local.yaml
+*.key
+*.pem
+/etc/relayer/

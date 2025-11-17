@@ -1,3 +1,8 @@
+// Package worker 实现跨链桥的消息记录管理器
+// 职责：
+// 1. 创建和管理 BridgeRecords 表（用户友好的跨链记录）
+// 2. 合并源链和目标链的信息形成完整的跨链记录
+// 3. 为前端 API 提供查询数据源
 package worker
 
 import (
@@ -17,24 +22,26 @@ import (
 	"github.com/google/uuid"
 )
 
-// worker 模块是跨链桥接系统的核心处理器，负责协调源链和目标链之间的消息处理
+// WorkerHandleConfig Worker 配置
 type WorkerHandleConfig struct {
-	LoopInterval time.Duration
-	ChainIds     []string // ist of chain IDs to process
+	LoopInterval time.Duration // 处理循环间隔
+	ChainIds     []string      // 要处理的链 ID 列表
 }
 
-// WorkerHandle 工作节点处理器，负责处理跨链桥接消息
-// 主要功能：
-// 1. 处理发送到目标链的桥接消息 (onProcessMessageSend)
-// 2. 处理已中继的消息确认 (onProcessRelayerMessage)
+// WorkerHandle 跨链记录管理器
+// 负责创建和维护用户友好的跨链记录（BridgeRecords 表）
+//
+// 核心任务：
+// 1. onProcessMessageSend: 处理源链消息，创建初始记录
+// 2. onProcessRelayerMessage: 处理目标链确认，更新完成状态
 type WorkerHandle struct {
-	db             *database.DB
-	wConf          *WorkerHandleConfig
-	ethClient      node.EthClient
-	wsHub          *websocket.Hub // WebSocket 消息中心，用于推送实时通知
-	resourceCtx    context.Context
-	resourceCancel context.CancelFunc
-	tasks          tasks.Group // 任务组，管理并发任务
+	db             *database.DB        // 数据库连接
+	wConf          *WorkerHandleConfig // 配置
+	ethClient      node.EthClient      // 以太坊客户端（未使用）
+	wsHub          *websocket.Hub      // WebSocket 广播中心
+	resourceCtx    context.Context     // 资源上下文
+	resourceCancel context.CancelFunc  // 取消函数
+	tasks          tasks.Group         // 任务组
 }
 
 // NewWorkerHandle 创建新的工作节点处理器
