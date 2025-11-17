@@ -4,6 +4,13 @@ import (
 	"github.com/Sandwichzzy/relayer-node/database/relayer"
 )
 
+// Models 层 (service/models/)
+// 职责：数据模型定义
+// 定义了所有的请求参数和响应结构：
+// - QuerySRParams/QueryBRParams: 查询参数
+// - StakingResponse/BridgeResponse: 分页响应
+// - ValidResult: 验证结果
+// - GasFeeResponse: Gas 费用响应
 type QuerySRParams struct {
 	Address  string
 	Page     int

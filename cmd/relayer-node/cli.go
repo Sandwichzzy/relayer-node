@@ -4,13 +4,15 @@ import (
 	"context"
 	"strconv"
 
+	"github.com/ethereum/go-ethereum/log"
+	"github.com/urfave/cli/v2"
+
 	"github.com/Sandwichzzy/relayer-node/common/cliapp"
 	"github.com/Sandwichzzy/relayer-node/common/opio"
 	"github.com/Sandwichzzy/relayer-node/config"
 	"github.com/Sandwichzzy/relayer-node/database"
 	"github.com/Sandwichzzy/relayer-node/database/create_table"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/urfave/cli/v2"
+	"github.com/Sandwichzzy/relayer-node/service"
 )
 
 var (
@@ -34,7 +36,13 @@ func runIndexer(ctx *cli.Context, shutdown context.CancelCauseFunc) (cliapp.Life
 }
 
 func runApi(ctx *cli.Context, _ context.CancelCauseFunc) (cliapp.Lifecycle, error) {
-	return nil, nil
+	log.Info("running api ...")
+	cfg, err := config.New(ctx.String(ConfigFlag.Name))
+	if err != nil {
+		log.Error("failed to load config", "err", err)
+		return nil, err
+	}
+	return service.NewAPI(ctx.Context, cfg)
 }
 
 func runMigrations(ctx *cli.Context) error {

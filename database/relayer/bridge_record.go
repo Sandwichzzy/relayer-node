@@ -73,10 +73,10 @@ func NewBridgeRecordDB(db *gorm.DB) BridgeRecordDB {
 
 func (db *bridgeRecordsDB) BridgeValid(address string) bool {
 	var totalRecord int64
-	table := db.gorm.Table("bridge_record").Select(" *")
-	querySR := db.gorm.Table("(?) as temp ", table)
-	querySR = querySR.Where(BridgeRecords{FromAddress: common.HexToAddress(address)})
-	result := querySR.Count(&totalRecord)
+	table := db.gorm.Table("bridge_record").Select(" *")                              // 构建基础查询：从 bridge_record 表选择所有字段
+	querySR := db.gorm.Table("(?) as temp ", table)                                   // 将上面的查询作为子查询（临时表）
+	querySR = querySR.Where(BridgeRecords{FromAddress: common.HexToAddress(address)}) //筛选指定地址的记录
+	result := querySR.Count(&totalRecord)                                             // 执行 COUNT 查询，获取匹配的记录数量
 	if result.Error != nil {
 		log.Error("get bridge records by address count fail", "err", result.Error)
 	}

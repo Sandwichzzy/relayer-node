@@ -106,3 +106,27 @@ fee                 // 手续费
 3. 中继器将消息传递到目标链，目标链验证并生成相同的 MsgHash
 4. Worker 在目标链监听到 BridgeMsgHash 事件，通过相同的 MsgHash 找到原始记录
 5. 更新记录，添加 DestTxHash
+
+
+API相关：
+🔄 API 调用流程
+
+HTTP Request
+↓
+Routes Layer (Handler)
+├─ 参数解析
+├─ 缓存检查
+↓
+Service Layer
+├─ 参数验证
+├─ 业务逻辑
+├─ 调用 DB 或 gRPC
+↓
+Response (JSON)
+
+额外的实时通道：
+Worker/Processor
+↓
+WebSocket Hub
+↓
+Broadcast to all clients

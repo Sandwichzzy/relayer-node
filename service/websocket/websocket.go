@@ -10,6 +10,14 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+//WebSocket 层
+//职责：实时消息推送
+//
+//管理所有 WebSocket 连接
+//BroadcastBridgeFinalized 方法，广播跨链完成事件
+//实现了心跳机制（ping/pong）保持连接
+//并发安全的客户端管理
+
 const (
 	writeWait      = 10 * time.Second
 	pongWait       = 60 * time.Second
